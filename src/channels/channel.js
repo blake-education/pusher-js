@@ -21,11 +21,9 @@
   Pusher.Util.extend(prototype, Pusher.EventsDispatcher.prototype);
 
   /** Skips authorization, since public channels don't require it.
-   *
-   * @param {Function} callback
    */
-  prototype.authorize = function(socketId, callback) {
-    return callback(false, {});
+  prototype.authorize = function(socketId) {
+    return RSVP.Promise.resolve({})
   };
 
   /** Triggers an event */
@@ -59,21 +57,31 @@
     }
   };
 
+  prototype.subscriptionPromise = function() {
+    if(!this.subscriptionPromiseObj) {
+      this.subscriptionPromiseObj = new RSVP.Promise(function(resolve, reject) {
+
+        self.authorize(self.pusher.connection.socket_id).then(function(data) {
+          self.pusher.send_event('pusher:subscribe', {
+            auth: data.auth,
+            channel_data: data.channel_data,
+            channel: self.name
+          });
+          resolve({});
+        }).catch(function(error) {
+          self.handleEvent('pusher:subscription_error', data);
+          reject(error)
+        });
+      });
+    }
+
+    return this.subscriptionPromiseObj;
+  }
+
   /** Sends a subscription request. For internal use only. */
   prototype.subscribe = function() {
-    var self = this;
+    this.subscriptionPromiseObj();
 
-    self.authorize(self.pusher.connection.socket_id, function(error, data) {
-      if (error) {
-        self.handleEvent('pusher:subscription_error', data);
-      } else {
-        self.pusher.send_event('pusher:subscribe', {
-          auth: data.auth,
-          channel_data: data.channel_data,
-          channel: self.name
-        });
-      }
-    });
   };
 
   /** Sends an unsubscription request. For internal use only. */

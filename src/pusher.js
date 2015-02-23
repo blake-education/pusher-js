@@ -175,7 +175,7 @@
     if (this.connection.state === 'connected') {
       channel.subscribe();
     }
-    return channel;
+    return channel.subscriptionPromise;
   };
 
   prototype.unsubscribe = function(channel_name) {

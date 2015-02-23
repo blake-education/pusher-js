@@ -15,9 +15,9 @@
    * @param  {String} socketId
    * @param  {Function} callback
    */
-  prototype.authorize = function(socketId, callback) {
+  prototype.authorize = function(socketId) {
     var authorizer = new Pusher.Channel.Authorizer(this, this.pusher.config);
-    return authorizer.authorize(socketId, callback);
+    return authorizer.authorize(socketId);
   };
 
   Pusher.PrivateChannel = PrivateChannel;
